@@ -158,3 +158,27 @@
   transform: scale(1.04);
   box-shadow: 0 4px 20px #39d35366;
 }
+
+.signup-btn:disabled {
+  cursor: wait;
+  opacity: 0.8;
+  transform: none;
+}
+
+.auth-loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: 9px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  vertical-align: -3px;
+  animation: auth-spinner-rotation 0.7s linear infinite;
+}
+
+@keyframes auth-spinner-rotation {
+  to {
+    transform: rotate(360deg);
+  }
+}

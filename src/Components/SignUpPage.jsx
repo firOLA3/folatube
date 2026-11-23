@@ -11,6 +11,7 @@ const SignUpPage = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [notification, setNotification] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate()
 
   const showNotification = (message, type) => {
@@ -23,19 +24,22 @@ const SignUpPage = () => {
 
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
-  const addUser = (e) => {
+  const addUser = async (e) => {
     e.preventDefault(); // Prevent form reload
+    if (isLoading) return;
+
+    setIsLoading(true);
     let newUser = { firstName, lastName, email, password}
-    axios.post(`${API_URL}/user/register`, newUser)
-      .then((res) => {
-        console.log("Response:", res.data);
-        showNotification("Signup successful! Please login.", "success");
-        setTimeout(() => navigate("/signin"), 2000);
-      })
-      .catch((err) => {
-        console.error("Error:", err.response ? err.response.data : err);
-        showNotification("Signup failed, try again.", "error");
-      });
+    try {
+      const res = await axios.post(`${API_URL}/user/register`, newUser);
+      console.log("Response:", res.data);
+      showNotification("Signup successful! Please login.", "success");
+      setTimeout(() => navigate("/signin"), 2000);
+    } catch (err) {
+      console.error("Error:", err.response ? err.response.data : err);
+      showNotification("Signup failed, try again.", "error");
+      setIsLoading(false);
+    }
   }
 
 
@@ -52,11 +56,14 @@ const SignUpPage = () => {
             height={57}
           />
           <form className='signup-form' onSubmit={addUser}>
-            <input type="text" className="signup-input" placeholder='Enter your first name' onChange={(e) => setFirstName(e.target.value)}/>
-            <input type="text" className="signup-input" placeholder='Enter your last name' onChange={(e) => setLastName(e.target.value)}/>
-            <input type="email" className="signup-input" placeholder='Enter your email' onChange={(e) => setEmail(e.target.value)}/>
-            <input type="password" className="signup-input" placeholder='Enter your password' onChange={(e) => setPassword(e.target.value)}/>
-            <button type="submit" className="signup-btn">Signup</button>
+            <input type="text" className="signup-input" placeholder='Enter your first name' onChange={(e) => setFirstName(e.target.value)} disabled={isLoading}/>
+            <input type="text" className="signup-input" placeholder='Enter your last name' onChange={(e) => setLastName(e.target.value)} disabled={isLoading}/>
+            <input type="email" className="signup-input" placeholder='Enter your email' onChange={(e) => setEmail(e.target.value)} disabled={isLoading}/>
+            <input type="password" className="signup-input" placeholder='Enter your password' onChange={(e) => setPassword(e.target.value)} disabled={isLoading}/>
+            <button type="submit" className="signup-btn" disabled={isLoading} aria-busy={isLoading}>
+              {isLoading && <span className="auth-loading-spinner" aria-hidden="true" />}
+              {isLoading ? 'Signing up...' : 'Signup'}
+            </button>
           </form>
           <div style={{ width: '100%', textAlign: 'center', marginTop: '18px' }}>
             <div style={{ color: '#888', fontWeight: 500, marginBottom: '8px' }}>or</div>

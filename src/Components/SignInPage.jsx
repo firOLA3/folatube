@@ -9,6 +9,7 @@ const SignInPage = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [notification, setNotification] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate()
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001";
 
@@ -20,31 +21,31 @@ const SignInPage = () => {
     setNotification(null);
   };
 
-  const loginUser = (e) => {
-  e.preventDefault(); // Prevent form reload
-  const oldUser = { email, password };
+  const loginUser = async (e) => {
+    e.preventDefault(); // Prevent form reload
+    if (isLoading) return;
 
-  axios.post(`${API_URL}/user/login`, oldUser)
-    .then((res) => {
+    setIsLoading(true);
+    const oldUser = { email, password };
+
+    try {
+      const res = await axios.post(`${API_URL}/user/login`, oldUser);
       console.log("Response:", res.data);
 
       if (res.data.message === "Login successful") {
         showNotification("Welcome back!", "success");
-
-        // ✅ Save token (check the correct key if your backend returns 'token' directly)
         localStorage.setItem('token', res.data.user?.token || res.data.token);
-
         setTimeout(() => navigate("/home"), 2000);
       } else {
         showNotification(res.data.message || "Invalid credentials", "error");
+        setIsLoading(false);
       }
-    })
-    .catch((err) => {
+    } catch (err) {
       console.error("Error:", err.response ? err.response.data : err);
       showNotification("Login failed. Please check your email or password.", "error");
-    });
-};
-
+      setIsLoading(false);
+    }
+  };
 
 
 
@@ -70,6 +71,7 @@ const SignInPage = () => {
               required
               onChange={(e) => setEmail(e.target.value)}
               name='email'
+              disabled={isLoading}
             />
             <input
               type="password"
@@ -78,9 +80,11 @@ const SignInPage = () => {
               required
               onChange={(e) => setPassword(e.target.value)}
               name='password'
+              disabled={isLoading}
             />
-            <button type="submit" className="signin-btn">
-              Sign In
+            <button type="submit" className="signin-btn" disabled={isLoading} aria-busy={isLoading}>
+              {isLoading && <span className="auth-loading-spinner" aria-hidden="true" />}
+              {isLoading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
           <div style={{ margin: '18px 0 0 0', textAlign: 'center', color: '#888' }}>
